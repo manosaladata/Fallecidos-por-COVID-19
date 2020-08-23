@@ -18,5 +18,6 @@ https://www.datosabiertos.gob.pe/dataset/fallecidos-por-covid-19-ministerio-de-s
 ## EQUIPO:
 
 * Líder del proyecto: [Eduardo Corrales](https://www.linkedin.com/in/eduardo-corrales-huaman-a5baa91a0/)
+
 Integrantes:
 - [Reynaldo Huaman Valenzuela](https://www.linkedin.com/in/reynaldo-huaman-38ab50113/)
