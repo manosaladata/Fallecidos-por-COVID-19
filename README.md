@@ -1,4 +1,9 @@
 # Fallecidos-por-COVID-19
+## Introducción
+
+Perú está a un paso de ser el país con la mayor tasa de mortalidad durante la pandemia tras haber rebasado oficialmente los 27,000 fallecidos por COVID-19, pero con una cifra de exceso de muertes en este periodo casi dos veces y media mayor, pues los registros de defunciones revelan unos 63,000 muertos segun Diario Gestion.
+
+Por ello considero necesario tener un filtro por departamentos y distritos en caso de lima de toda esta informacion para saber mas a profundidad como afecta este virus a las diferentes localidades
 
 ## ¿De qué trata el proyecto?
 
