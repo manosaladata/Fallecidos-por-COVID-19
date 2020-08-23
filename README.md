@@ -12,9 +12,10 @@ Se Busca realizar un analisis estadistico a profundidad de los fallecidos y los 
 El proyecto se piensa presentar finalizado en un dashboard para que el propio usuario pueda manejar las variables y obtenga los resultados pedidos.
 
 ## Descarga la data
-
+Fallecidos por Covid en Perú:
 https://www.datosabiertos.gob.pe/dataset/fallecidos-por-covid-19-ministerio-de-salud-minsa
 
+Casos positivos de Covid en el Perú:
 https://www.datosabiertos.gob.pe/dataset/casos-positivos-por-covid-19-ministerio-de-salud-minsa
 
 ## EQUIPO:
