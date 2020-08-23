@@ -1,0 +1,90 @@
+---
+title: "Analisis Estadistico del Covid-19 en el Peru"
+author: "Eduardo Corrales Huaman"
+date: "Realizado el `r format(Sys.time(), '%d %B, %Y')`"
+output:
+  html_document:
+    theme: journal
+    toc: yes
+    toc_float: true
+---
+
+```{r configuracion_inicial,echo=FALSE,comment=F,warning=FALSE,message=FALSE}
+library(readxl)
+library(dplyr)
+library(tidyr)
+library(lubridate)
+library(ggplot2)
+library(plotly)
+library(extrafont)
+library(kableExtra)
+library(htmlTable)
+fallecidos<- readxl::read_xlsx("fallecidos_covid.xlsx")
+fallecidos$FECHA_FALLECIMIENTO<-ymd(as.character(fallecidos$FECHA_FALLECIMIENTO))
+fallecidos$FECHA_NAC<-ymd(as.character(fallecidos$FECHA_NAC))
+```
+
+# Analisis Exploratorio
+
+## Promedio de edad de los fallecidos y numero de casos por cada departamento
+
+### Para el genero masculino:
+```{r masculino, echo=FALSE,fig.height=30,warning=FALSE,message=FALSE}
+genero<-fallecidos%>% 
+  group_by(`DEPARTAMENTO`,`SEXO`) %>%
+  summarise(promedio_edad=mean(`EDAD_DECLARADA`),numero=n())
+
+genero %>%
+  filter(`SEXO` %in% c("MASCULINO")) %>%
+  rename(PROMEDIO_EDAD=promedio_edad, FALLECIDOS=numero)%>%
+  DT::datatable()
+
+```
+
+### Para el genero femenino: 
+```{r femenino, echo=FALSE,fig.height=30,warning=FALSE,message=FALSE}
+genero %>%
+  filter(`SEXO` %in% c("FEMENINO"))%>%
+  rename(PROMEDIO_EDAD=promedio_edad, FALLECIDOS=numero)%>%
+  DT::datatable()
+
+
+```
+
+## Analisis por distritos en la ciudad de Lima
+
+```{r Lima, echo=FALSE,fig.height=30,warning=FALSE,message=FALSE}
+lima <-fallecidos %>%
+  filter(`DEPARTAMENTO`=="LIMA")%>%
+  group_by(`DISTRITO`)%>%
+  summarise(promedio_edad=mean(`EDAD_DECLARADA`),numero=n())
+
+lima %>%
+  rename(PROMEDIO_EDAD=promedio_edad, FALLECIDOS=numero)%>%
+  DT::datatable()
+
+```
+
+```{r filtro, echo=FALSE,fig.height=30,warning=FALSE,message=FALSE}
+fallecidos_depar<-fallecidos %>%
+  select(FECHA_FALLECIMIENTO,DEPARTAMENTO,EDAD_DECLARADA) %>%
+  filter(`DEPARTAMENTO`=="LIMA")
+```
+
+## Grafico de Densidad para la ciudad de Lima
+
+```{r GraficoLima, echo=FALSE,fig.height=6,warning=FALSE,message=FALSE}
+grafico<-ggplot(fallecidos_depar,aes(x=FECHA_FALLECIMIENTO,y=EDAD_DECLARADA))+
+  geom_density_2d(aes(color=DEPARTAMENTO),size=1)+
+  ggtitle("Densidad de fallecidos por Covid en Lima")+
+  theme (plot.title = element_text(family="Comic Sans MS",
+                                   size=rel(1.8), 
+                                   vjust=2, 
+                                   face="bold", 
+                                   color="red", 
+                                   lineheight=1.5)) +
+  labs(x="Fecha de Fallecimiento",y="Edad Declarada")+
+  theme(axis.title.x = element_text(face="bold", vjust=-0.5, colour="orange", size=rel(1.5))) +
+  theme(axis.title.y = element_text(face="bold", vjust=1.5, colour="blue", size=rel(1.5))) 
+ggplotly(grafico) %>% layout(legend = list(orientation = "h", x = 0.4, y = -0.2))
+```
