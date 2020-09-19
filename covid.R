@@ -118,23 +118,20 @@ library(ggthemes)
 library(plyr)
 
 
-# actualizado a 18/08/2020 https://www.datosabiertos.gob.pe/dataset/fallecidos-por-covid-19-ministerio-de-salud-minsa
-# actualizado a 18/08/2020 https://www.datosabiertos.gob.pe/dataset/casos-positivos-por-covid-19-ministerio-de-salud-minsa
-fallecidos_covid <- readxl::read_xlsx("fallecidos_covid.xlsx")
-positivos_covid <- readxl::read_xlsx("positivos_covid.xlsx")
+#creamos una base de datos para unir
+#y aumentamos una columna para poder juntar en una BBDD que 
+#contenga los fallecidos y las personas con COVID positivo
 
-#aumentamos una columna para poder juntar mas adelante
-fallecidos_covid$Fallecidos="SI"
-fallecidos_covid <-fallecidos_covid %>%  select("UUID","Fallecidos")
+fallecidos1 <- fallecidos_covid
+fallecidos1$FALLECIO="SI"
+fallecidos1 <- fallecidos1 %>%  select("UUID","FALLECIO")
 
 #juntamos
-X1 <-merge( positivos_covid,fallecidos_covid, by = "UUID", all.x =TRUE)
-X1$Fallecidos[is.na(X1$Fallecidos)]="NO" #a todos los NA creados a partir de la mezcla los rellenamos con NO de no estar fallecidos
+X1 <-merge( positivos_covid,fallecidos1, by = "UUID", all.x =TRUE)
+X1$FALLECIO[is.na(X1$FALLECIO)]="NO" #a todos los NA creados a partir de la mezcla los rellenamos con NO de no estar fallecidos
 
-#Buscamos datos "NA"
-X1 %>% count("Fallecidos")
-sapply(X1, function(x) sum(is.na(x)))
-X1 <- na.omit(X1)
+#buscamos si hay datos duplicados
+sum(duplicated(X1))
 
 #dibujar en un histograma por edades
 theme_recession <- theme(
@@ -149,13 +146,12 @@ theme_recession <- theme(
 theme_tufte_recession <- theme_tufte() + theme_recession
 
 
-ggplot(X1,aes(x=EDAD,color=Fallecidos,fill=Fallecidos)) + geom_bar(position="identity",alpha=0.5)+
+ggplot(X1,aes(x=EDAD,color=FALLECIO,fill=FALLECIO)) + geom_bar(position="identity",alpha=0.5)+
   labs(x="Edades",y="Numero de casos",title = "Histograma de casos COVID-19")
-ggplot(X1, aes(x=EDAD,color=Fallecidos,fill=Fallecidos)) +
+ggplot(X1, aes(x=EDAD,color=FALLECIO,fill=FALLECIO)) +
   geom_histogram(position="identity",alpha=0.5)  +
   labs(x="Edades",y="Numero de casos",title = "Histograma de casos COVID-19")
 
-X1 %>%  group_by(EDAD,Fallecidos) %>% summarise(conteo_p=count(EDAD))
 
 
 #--- otro tipo de grafico
@@ -163,7 +159,7 @@ library(funModeling)
 
 cross_plot(X1, 
            input="EDAD",   
-           target="Fallecidos", plot_type="percentual")+
+           target="FALLECIO", plot_type="percentual")+
   labs(x="Edades",y="Numero de casos",title = "Histograma de casos COVID-19")
 
 
