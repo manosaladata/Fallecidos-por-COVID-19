@@ -65,7 +65,8 @@ sum(duplicated(positivos_covid))
 unique(fallecidos_covid$DEPARTAMENTO)
 
 fallecidos_covid %>% group_by(SEXO, EDAD_DECLARADA) %>% count()  #no funciona mi dplyr?
-
+fallecidos_covid %>%  group_by(SEXO,EDAD_DECLARADA) %>% summarise(conteo_p=count(EDAD))
+fallecidos_covid %>% count("EDAD","FALLECIO")
 #------------------------------------------------------------------
 
 View(fallecidos_covid)
