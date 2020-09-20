@@ -163,4 +163,27 @@ cross_plot(X1,
   labs(x="Edades",y="Numero de casos",title = "Histograma de casos COVID-19")
 
 
+#HACEMOS UN DIAGRAMA DE PIRAMIDE
+data.piramide = X1 %>%
+  mutate(EDAD = cut(EDAD,
+                    #breaks = c(0,5,10,15,20,25,30,35,40,45,50,55,60,65,70,75,80,85,90,95,100,120),
+                    breaks = seq(0,120,5),
+                    include.lowest = TRUE)) %>%
+  group_by(SEXO,EDAD) %>%
+  count()
 
+glimpse(data.piramide)
+data.piramide$n <- as.numeric(as.integer(data.piramide$n))
+
+data.piramide <-  data.piramide[,c(2,1,3)]
+
+ggplot(aes(x = EDAD,
+           y = n,
+           fill = SEXO,
+           label = abs(n))) +
+  geom_col(position = "stack", alpha = 0.6) +
+  geom_text(size = 3, check_overlap = TRUE)+
+  scale_y_continuous(labels = abs) +
+  labs(x = "Edad", y = "Número de casos", title = "Distribución nacional de casos positivos COVID-19 \n por edad y sexo") +
+  scale_fill_manual(values = c("orange", "darkblue")) +
+  coord_flip()
