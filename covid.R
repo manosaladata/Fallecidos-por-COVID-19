@@ -64,9 +64,6 @@ sum(duplicated(positivos_covid))
 
 unique(fallecidos_covid$DEPARTAMENTO)
 
-fallecidos_covid %>% group_by(SEXO, EDAD_DECLARADA) %>% count()  #no funciona mi dplyr?
-fallecidos_covid %>%  group_by(SEXO,EDAD_DECLARADA) %>% summarise(conteo_p=count(EDAD))
-fallecidos_covid %>% count("EDAD","FALLECIO")
 #------------------------------------------------------------------
 
 View(fallecidos_covid)
@@ -115,7 +112,7 @@ ggplotly(grafico) %>% layout(legend = list(orientation = "h", x = 0.4, y = -0.2)
 library(tidyverse)
 library(tint)
 library(ggthemes)
-library(plyr)
+library(funModeling)
 
 
 #creamos una base de datos para unir
