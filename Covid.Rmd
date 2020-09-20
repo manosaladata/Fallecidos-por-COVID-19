@@ -11,15 +11,15 @@ output:
 
 ```{r configuracion_inicial,echo=FALSE,comment=F,warning=FALSE,message=FALSE}
 library(readxl)
-library(dplyr)
-library(tidyr)
+library(tidyverse)
+library(sf)
+library(ggrepel)
 library(lubridate)
-library(ggplot2)
 library(plotly)
 library(extrafont)
 library(kableExtra)
 library(htmlTable)
-fallecidos<- readxl::read_xlsx("fallecidos_covid.xlsx")
+fallecidos<- read_csv("data/fallecidos_covid.csv")
 fallecidos$FECHA_FALLECIMIENTO<-ymd(as.character(fallecidos$FECHA_FALLECIMIENTO))
 fallecidos$FECHA_NAC<-ymd(as.character(fallecidos$FECHA_NAC))
 ```
@@ -51,19 +51,6 @@ genero %>%
 
 ```
 
-## Analisis por distritos en la ciudad de Lima
-
-```{r Lima, echo=FALSE,fig.height=30,warning=FALSE,message=FALSE}
-lima <-fallecidos %>%
-  filter(`DEPARTAMENTO`=="LIMA")%>%
-  group_by(`DISTRITO`)%>%
-  summarise(promedio_edad=mean(`EDAD_DECLARADA`),numero=n())
-
-lima %>%
-  rename(PROMEDIO_EDAD=promedio_edad, FALLECIDOS=numero)%>%
-  DT::datatable()
-
-```
 
 ```{r filtro, echo=FALSE,fig.height=30,warning=FALSE,message=FALSE}
 fallecidos_depar<-fallecidos %>%
@@ -71,20 +58,86 @@ fallecidos_depar<-fallecidos %>%
   filter(`DEPARTAMENTO`=="LIMA")
 ```
 
-## Grafico de Densidad para la ciudad de Lima
+## Distribucion de Casos positivos por Departamento
 
-```{r GraficoLima, echo=FALSE,fig.height=6,warning=FALSE,message=FALSE}
-grafico<-ggplot(fallecidos_depar,aes(x=FECHA_FALLECIMIENTO,y=EDAD_DECLARADA))+
-  geom_density_2d(aes(color=DEPARTAMENTO),size=1)+
-  ggtitle("Densidad de fallecidos por Covid en Lima")+
-  theme (plot.title = element_text(family="Comic Sans MS",
-                                   size=rel(1.8), 
-                                   vjust=2, 
-                                   face="bold", 
-                                   color="red", 
-                                   lineheight=1.5)) +
-  labs(x="Fecha de Fallecimiento",y="Edad Declarada")+
-  theme(axis.title.x = element_text(face="bold", vjust=-0.5, colour="orange", size=rel(1.5))) +
-  theme(axis.title.y = element_text(face="bold", vjust=1.5, colour="blue", size=rel(1.5))) 
-ggplotly(grafico) %>% layout(legend = list(orientation = "h", x = 0.4, y = -0.2))
+```{r PositivosCovidRegion, echo=FALSE,fig.height=6,warning=FALSE,message=FALSE}
+departamento <- sf::read_sf("data/Mapas/DEPARTAMENTOS.shp") %>%
+  select(Departamento = DEPARTAMEN, geometry)
+
+data2 = readxl::read_xlsx("data/reportes_minsa.xlsx", sheet=3)
+data2=data2%>%mutate(REGION=
+                       case_when(REGION %in% c("LIMA METROPOLITANA",
+                                               "LIMA REGIÓN",
+                                               "LIMA")~"LIMA",
+                                 TRUE~REGION))
+data3 = data2 %>%
+  filter(Fecha == max(data2$Fecha)) %>%
+  rename(Departamento = REGION) %>%
+  group_by(Departamento) %>%
+  summarise(casos = sum(Positivos_totales))
+
+departamento %>%
+  left_join(data3, by="Departamento")%>%  ### Sumar a departamente data3 haciendo interseccion en Departamento
+  mutate(casos = replace_na(casos,0),   
+                casos=as.factor(casos),
+                label = paste0(Departamento, ": ", casos))%>%  
+  ggplot() +
+  geom_sf(ggplot2::aes(fill = casos), size = 0.05, color = "gray40")+  ##Proyecion de mapas con varios colores
+  ggplot2::scale_fill_manual(values = c(grDevices::colorRampPalette(colors = c("#FFF5F0","#FB6A4A", "#67000D"))(length(unique(data3$casos)))))+
+  geom_label_repel(    ## Uso de ggrepel
+    aes(label = label, geometry = geometry),
+    stat = "sf_coordinates", 
+    size = 2,
+    min.segment.length = 0
+  )+   ##Insertar texto al mapa
+  scale_x_discrete()+
+  ggtitle("Casos positivos por Departamento")+
+  theme_bw()+ #Un tema con fondo blanco y cuadrículas negras.
+  theme(legend.position = "none", axis.title = element_blank()) ## Sin leyenda y sin titulo de eje
 ```
+
+```{r FallecidosCovidRegion, echo=FALSE,fig.height=6,warning=FALSE,message=FALSE}
+departamento <- sf::read_sf("data/Mapas/DEPARTAMENTOS.shp") %>%
+  select(Departamento = DEPARTAMEN, geometry)
+
+data2 = readxl::read_xlsx("data/reportes_minsa.xlsx", sheet=3)
+data2=data2%>%mutate(REGION=
+                 case_when(REGION %in% c("LIMA METROPOLITANA",
+                                         "LIMA REGIÓN",
+                                         "LIMA")~"LIMA",
+                           TRUE~REGION))
+
+data3 = data2 %>%
+  filter(Fecha == max(data2$Fecha)) %>%
+  rename(Departamento = REGION) %>%
+  group_by(Departamento) %>%
+  summarise(casos = sum(Fallecidos))
+
+departamento %>%
+  left_join(data3, by="Departamento")%>%  ### Sumar a departamente data3 haciendo interseccion en Departamento
+  mutate(casos = replace_na(casos,0),   
+                casos=as.factor(casos),
+                label = paste0(Departamento, ": ", casos))%>%  
+  ggplot() +
+  geom_sf(ggplot2::aes(fill = casos), size = 0.05, color = "gray40")+  ##Proyecion de mapas con varios colores
+  ggplot2::scale_fill_manual(values = c(grDevices::colorRampPalette(colors = c("#FFF5F0","#FB6A4A", "#67000D"))(length(unique(data3$casos)))))+
+  geom_label_repel(    ## Uso de ggrepel
+    aes(label = label, geometry = geometry),
+    stat = "sf_coordinates", 
+    size = 2,
+    min.segment.length = 0
+  )+   ##Insertar texto al mapa
+  scale_x_discrete()+
+  ggtitle("Numero de fallecidos por Departamento")+
+  theme_bw()+ #Un tema con fondo blanco y cuadrículas negras.
+  theme(legend.position = "none", axis.title = element_blank()) ## Sin leyenda y sin titulo de eje
+
+```
+## Mapas
+### Gif casos positivos 
+<p align = center>
+![Gif](Img/peruheatmap-es-covid-hasta-latest.gif)</p>
+
+### Gif Fallecidos 
+<p align = center>
+![Gif](Img/peruheatmap-es-fallecidos-covid-hasta-latest.gif)</p>
