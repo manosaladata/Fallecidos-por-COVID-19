@@ -47,7 +47,7 @@ levels(fallecidos_covid$SEXO)
 sapply(fallecidos_covid, function(x) sum(is.na(x)))
 fallecidos_covid <- na.omit(fallecidos_covid)
 sapply(positivos_covid, function(x) sum(is.na(x)))
-fallecidos_covid <- na.omit(positivos_covid)
+positivos_covid <- na.omit(positivos_covid)
 
 summary(fallecidos_covid$EDAD_DECLARADA)
 assert_all_are_in_closed_range(fallecidos_covid$EDAD_DECLARADA, lower = 0, upper = 107)
